@@ -3,8 +3,20 @@ import praw
 import sys
 import json
 
+from dhooks import Webhook, Embed
 from dotenv import load_dotenv
 from loguru import logger
+
+
+class Notifier:
+  @staticmethod
+  def notify_config_change(sub, mod):
+    embed = Embed(title="KMT Flair Removal Configuration Changed", timestamp="now")
+    embed.add_field(name="Subreddit", value="[/r/%s](http://reddit.com/r/%s)" % (sub, sub), inline=False)
+    embed.add_field(name="Action Taken By", value="[/u/%s](http://reddit.com/u/%s)" % (mod, mod), inline=False)
+    
+    Webhook(os.getenv("DISCORD_ADMIN_HOOK")).send(embed=embed)
+    Webhook(os.getenv("DISCORD_ADMIN_HOOK")).send("Please see above, @everyone.")
 
 
 class Reddit:
@@ -27,12 +39,17 @@ class Reddit:
       sub_string = "+".join(Settings.active_subs)
       Reddit.stream = praw.models.util.stream_generator(Reddit.reddit.subreddit(sub_string).mod.log, skip_existing=True, attribute_name="id")
       for action in Reddit.stream:
+        print("")
         print(vars(action))
+        print("")
         if action.action == "wikirevise" and "kmtsettings" in action.details:
           logger.info("Monitoring stopped by wiki page edit in %s" % (action.subreddit_name_prefixed))
+          Notifier.notify_config_change(action.subreddit, action._mod)
           break
     except Exception as e:
       logger.error(e)
+
+    main()
 
 
 class Settings:
@@ -56,9 +73,6 @@ class Settings:
 
 
 def main():
-  if not initialize():
-    sys.exit()
-
   Settings.read_config()
   Reddit.monitor_mod_log()
   
@@ -87,4 +101,7 @@ def initialize():
 
 
 if __name__ == "__main__":
+  if not initialize():
+    sys.exit()
+
   main()
