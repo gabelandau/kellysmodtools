@@ -6,10 +6,6 @@ import json
 from dotenv import load_dotenv
 from loguru import logger
 
-reddit = None
-subreddit = None
-bot = None
-slack = None
 
 class Reddit:
   reddit = None
@@ -38,6 +34,7 @@ class Reddit:
     except Exception as e:
       logger.error(e)
 
+
 class Settings:
   flairs = dict()
   active_subs = []
@@ -52,7 +49,7 @@ class Settings:
         json_contents = json.loads(wiki.content_md)
         Settings.flairs[sub] = json_contents
         Settings.active_subs.append(sub)
-        logger.info("Sucessfully loaded wiki configuration page for /r/%s" % (sub))
+        logger.info("Successfully loaded wiki configuration page for /r/%s" % (sub))
       except Exception as e:
         logger.error("Failed to load wiki configuration page for /r/%S" % (sub))
         logger.error(e)
@@ -75,7 +72,7 @@ def initialize():
 
   logger.add(sys.stdout, format="[{time:HH:mm:ss.SSS}] {message}")
 
-  logger.info("Initalizing Kelly's Mod Tools...")
+  logger.info("Initalizing Kelly's mod tools...")
 
   CLIENT_ID = os.getenv("CLIENT_ID")
   CLIENT_SECRET = os.getenv("CLIENT_SECRET")
